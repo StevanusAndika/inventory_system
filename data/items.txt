@@ -1,1 +1,102 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "Susu Ultra Milk",
+    "category": "Minuman",
+    "stock": 50,
+    "unit": "pcs",
+    "created_date": "2024-01-15",
+    "expiry_date": "2024-07-15",
+    "min_stock": 10
+  },
+  {
+    "id": 2,
+    "name": "Beras Ramos",
+    "category": "Sembako",
+    "stock": 25,
+    "unit": "kg",
+    "created_date": "2024-02-10",
+    "expiry_date": "2025-02-10",
+    "min_stock": 5
+  },
+  {
+    "id": 3,
+    "name": "Minyak Goreng Bimoli",
+    "category": "Sembako",
+    "stock": 30,
+    "unit": "liter",
+    "created_date": "2024-03-05",
+    "expiry_date": "2024-09-05",
+    "min_stock": 8
+  },
+  {
+    "id": 4,
+    "name": "Gula Pasir",
+    "category": "Sembako",
+    "stock": 40,
+    "unit": "kg",
+    "created_date": "2024-01-20",
+    "expiry_date": "2025-01-20",
+    "min_stock": 10
+  },
+  {
+    "id": 5,
+    "name": "Sabun Lifebuoy",
+    "category": "Kebersihan",
+    "stock": 20,
+    "unit": "pcs",
+    "created_date": "2024-02-28",
+    "expiry_date": "2025-02-28",
+    "min_stock": 15
+  },
+  {
+    "id": 6,
+    "name": "Pasta Gigi Pepsodent",
+    "category": "Kebersihan",
+    "stock": 35,
+    "unit": "pcs",
+    "created_date": "2024-03-10",
+    "expiry_date": "2025-03-10",
+    "min_stock": 12
+  },
+  {
+    "id": 7,
+    "name": "Shampoo Clear",
+    "category": "Kecantikan",
+    "stock": 18,
+    "unit": "botol",
+    "created_date": "2024-02-15",
+    "expiry_date": "2025-02-15",
+    "min_stock": 8
+  },
+  {
+    "id": 8,
+    "name": "Teh Celup Sosro",
+    "category": "Minuman",
+    "stock": 60,
+    "unit": "box",
+    "created_date": "2024-01-30",
+    "expiry_date": "2024-12-30",
+    "min_stock": 20
+  },
+  {
+    "id": 9,
+    "name": "Kopi Kapal Api",
+    "category": "Minuman",
+    "stock": 28,
+    "unit": "sachet",
+    "created_date": "2024-03-01",
+    "expiry_date": "2024-12-01",
+    "min_stock": 15
+  },
+  {
+    "id": 10,
+    "name": "Mie Instan Indomie",
+    "category": "Makanan",
+    "stock": 100,
+    "unit": "pcs",
+    "created_date": "2024-02-20",
+    "expiry_date": "2024-11-20",
+    "min_stock": 30
+  }
+]

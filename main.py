@@ -1,12 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
-from tkcalendar import DateEntry
 from auth import AuthSystem
 from inventory import InventorySystem
-from utils import hash_password, send_email_notification, export_to_csv
+from utils import hash_password, send_email_notification, export_to_csv, validate_date, get_current_date
 import re
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 class LoginWindow:
     def __init__(self, root):
@@ -25,7 +24,7 @@ class LoginWindow:
         
     def setup_ui(self):
         # Main frame with styling
-        main_frame = ttk.Frame(self.root, padding=20, style="Main.TFrame")
+        main_frame = ttk.Frame(self.root, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # Title
@@ -34,7 +33,7 @@ class LoginWindow:
         title_label.pack(pady=20)
         
         # Form frame
-        form_frame = ttk.Frame(main_frame, style="Form.TFrame")
+        form_frame = ttk.Frame(main_frame)
         form_frame.pack(pady=20, fill=tk.X)
         
         # Username
@@ -66,16 +65,6 @@ class LoginWindow:
         # Reset password button
         reset_btn = ttk.Button(button_frame, text="Reset Password", command=self.open_reset_password, width=15)
         reset_btn.pack(side=tk.LEFT, padx=5)
-        
-        # Configure styles
-        self.configure_styles()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Main.TFrame", background="#f0f0f0")
-        style.configure("Form.TFrame", background="#f0f0f0")
-        style.configure("TButton", padding=6, font=("Arial", 9))
-        style.map("TButton", background=[('active', '#e1e1e1')])
         
     def login(self):
         username = self.username_entry.get().strip()
@@ -113,21 +102,20 @@ class RegisterWindow(tk.Toplevel):
         # Center window
         self.transient(parent)
         self.grab_set()
-        self.eval(f'tk::PlaceWindow {str(self)} center')
         
         self.auth = AuthSystem()
         
         self.setup_ui()
         
     def setup_ui(self):
-        main_frame = ttk.Frame(self, padding=20, style="Main.TFrame")
+        main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         title_label = ttk.Label(main_frame, text="Registrasi Pengguna Baru", 
                                font=("Arial", 14, "bold"), foreground="#2c3e50")
         title_label.pack(pady=10)
         
-        form_frame = ttk.Frame(main_frame, style="Form.TFrame")
+        form_frame = ttk.Frame(main_frame)
         form_frame.pack(pady=20, fill=tk.X)
         
         # Form fields
@@ -153,14 +141,6 @@ class RegisterWindow(tk.Toplevel):
         
         ttk.Button(button_frame, text="Register", command=self.register, width=12).pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="Batal", command=self.destroy, width=12).pack(side=tk.LEFT, padx=10)
-        
-        # Configure styles
-        self.configure_styles()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Main.TFrame", background="#f0f0f0")
-        style.configure("Form.TFrame", background="#f0f0f0")
         
     def register(self):
         username = self.username_entry.get().strip()
@@ -206,21 +186,20 @@ class ResetPasswordWindow(tk.Toplevel):
         # Center window
         self.transient(parent)
         self.grab_set()
-        self.eval(f'tk::PlaceWindow {str(self)} center')
         
         self.auth = AuthSystem()
         
         self.setup_ui()
         
     def setup_ui(self):
-        main_frame = ttk.Frame(self, padding=20, style="Main.TFrame")
+        main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         title_label = ttk.Label(main_frame, text="Reset Password", 
                                font=("Arial", 14, "bold"), foreground="#2c3e50")
         title_label.pack(pady=10)
         
-        form_frame = ttk.Frame(main_frame, style="Form.TFrame")
+        form_frame = ttk.Frame(main_frame)
         form_frame.pack(pady=20, fill=tk.X)
         
         ttk.Label(form_frame, text="Email:", font=("Arial", 10)).grid(row=0, column=0, sticky=tk.W, pady=10, padx=5)
@@ -232,14 +211,6 @@ class ResetPasswordWindow(tk.Toplevel):
         
         ttk.Button(button_frame, text="Reset Password", command=self.reset_password, width=15).pack(side=tk.LEFT, padx=10)
         ttk.Button(button_frame, text="Batal", command=self.destroy, width=15).pack(side=tk.LEFT, padx=10)
-        
-        # Configure styles
-        self.configure_styles()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Main.TFrame", background="#f0f0f0")
-        style.configure("Form.TFrame", background="#f0f0f0")
         
     def reset_password(self):
         email = self.email_entry.get().strip()
@@ -259,28 +230,30 @@ class ResetPasswordWindow(tk.Toplevel):
             messagebox.showerror("Error", "Email tidak ditemukan")
 
 
+class DateEntry(ttk.Entry):
+    """Custom date entry widget without tkcalendar dependency"""
+    def __init__(self, parent, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.insert(0, get_current_date())
+        
+    def get_date(self):
+        return self.get()
+
+
 class InventoryApp:
     def __init__(self, root, user):
         self.root = root
         self.root.title(f"Sistem Inventory - {user['username']}")
         self.root.geometry("1200x700")
-        self.root.state('zoomed')  # Maximize window
         
         self.user = user
         self.inventory = InventorySystem()
         
-        # Configure styles
-        self.configure_styles()
+        # Initialize attributes to avoid AttributeError
+        self.stock_in_item = None
+        self.stock_out_item = None
         
         self.setup_ui()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Treeview", font=("Arial", 9), rowheight=25)
-        style.configure("Treeview.Heading", font=("Arial", 10, "bold"))
-        style.configure("TNotebook.Tab", font=("Arial", 10, "bold"), padding=[10, 5])
-        style.configure("Title.TLabel", font=("Arial", 12, "bold"), foreground="#2c3e50")
-        style.configure("Card.TFrame", background="white", relief=tk.RAISED, borderwidth=1)
         
     def setup_ui(self):
         # Main notebook (Tabbed interface)
@@ -294,11 +267,11 @@ class InventoryApp:
         self.report_frame = ttk.Frame(self.notebook, padding=10)
         self.dashboard_frame = ttk.Frame(self.notebook, padding=10)
         
-        self.notebook.add(self.items_frame, text="📦 Daftar Barang")
-        self.notebook.add(self.stock_in_frame, text="⬇️ Stok Masuk")
-        self.notebook.add(self.stock_out_frame, text="⬆️ Stok Keluar")
-        self.notebook.add(self.report_frame, text="📊 Laporan")
-        self.notebook.add(self.dashboard_frame, text="🏠 Dashboard")
+        self.notebook.add(self.items_frame, text="Daftar Barang")
+        self.notebook.add(self.stock_in_frame, text="Stok Masuk")
+        self.notebook.add(self.stock_out_frame, text="Stok Keluar")
+        self.notebook.add(self.report_frame, text="Laporan")
+        self.notebook.add(self.dashboard_frame, text="Dashboard")
         
         self.setup_items_tab()
         self.setup_stock_in_tab()
@@ -306,31 +279,15 @@ class InventoryApp:
         self.setup_report_tab()
         self.setup_dashboard_tab()
         
-        # Bind tab change event
-        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_changed)
-        
-    def on_tab_changed(self, event):
-        current_tab = self.notebook.index(self.notebook.select())
-        if current_tab == 0:  # Items tab
-            self.refresh_items()
-        elif current_tab == 1:  # Stock in tab
-            self.refresh_stock_in()
-        elif current_tab == 2:  # Stock out tab
-            self.refresh_stock_out()
-        elif current_tab == 3:  # Report tab
-            pass
-        elif current_tab == 4:  # Dashboard tab
-            self.update_dashboard()
-        
     def setup_items_tab(self):
         # Toolbar frame
         toolbar = ttk.Frame(self.items_frame)
         toolbar.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Button(toolbar, text="➕ Tambah Barang", command=self.open_add_item).pack(side=tk.LEFT, padx=5)
-        ttk.Button(toolbar, text="✏️ Edit Barang", command=self.open_edit_item).pack(side=tk.LEFT, padx=5)
-        ttk.Button(toolbar, text="🗑️ Hapus Barang", command=self.delete_item).pack(side=tk.LEFT, padx=5)
-        ttk.Button(toolbar, text="🔄 Refresh", command=self.refresh_items).pack(side=tk.LEFT, padx=5)
+        ttk.Button(toolbar, text="Tambah Barang", command=self.open_add_item).pack(side=tk.LEFT, padx=5)
+        ttk.Button(toolbar, text="Edit Barang", command=self.open_edit_item).pack(side=tk.LEFT, padx=5)
+        ttk.Button(toolbar, text="Hapus Barang", command=self.delete_item).pack(side=tk.LEFT, padx=5)
+        ttk.Button(toolbar, text="Refresh", command=self.refresh_items).pack(side=tk.LEFT, padx=5)
         
         # Search frame
         search_frame = ttk.Frame(self.items_frame)
@@ -350,14 +307,14 @@ class InventoryApp:
         self.items_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", selectmode="browse")
         
         # Define headings
-        self.items_tree.heading("id", text="ID", command=lambda: self.sort_treeview(self.items_tree, "id", False))
-        self.items_tree.heading("name", text="Nama Barang", command=lambda: self.sort_treeview(self.items_tree, "name", False))
-        self.items_tree.heading("category", text="Kategori", command=lambda: self.sort_treeview(self.items_tree, "category", False))
-        self.items_tree.heading("stock", text="Stok", command=lambda: self.sort_treeview(self.items_tree, "stock", False))
-        self.items_tree.heading("unit", text="Satuan", command=lambda: self.sort_treeview(self.items_tree, "unit", False))
-        self.items_tree.heading("min_stock", text="Min Stok", command=lambda: self.sort_treeview(self.items_tree, "min_stock", False))
-        self.items_tree.heading("created_date", text="Tanggal Dibuat", command=lambda: self.sort_treeview(self.items_tree, "created_date", False))
-        self.items_tree.heading("expiry_date", text="Tanggal Kadaluarsa", command=lambda: self.sort_treeview(self.items_tree, "expiry_date", False))
+        self.items_tree.heading("id", text="ID")
+        self.items_tree.heading("name", text="Nama Barang")
+        self.items_tree.heading("category", text="Kategori")
+        self.items_tree.heading("stock", text="Stok")
+        self.items_tree.heading("unit", text="Satuan")
+        self.items_tree.heading("min_stock", text="Min Stok")
+        self.items_tree.heading("created_date", text="Tanggal Dibuat")
+        self.items_tree.heading("expiry_date", text="Tanggal Kadaluarsa")
         
         # Define columns
         self.items_tree.column("id", width=50, anchor=tk.CENTER)
@@ -388,43 +345,41 @@ class InventoryApp:
         
         # Item selection
         ttk.Label(form_frame, text="Pilih Barang:").grid(row=0, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_in_item = ttk.Combobox(form_frame, state="readonly", width=30, font=("Arial", 10))
+        self.stock_in_item = ttk.Combobox(form_frame, state="readonly", width=30)
         self.stock_in_item.grid(row=0, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Quantity
         ttk.Label(form_frame, text="Jumlah:").grid(row=1, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_in_qty = ttk.Spinbox(form_frame, from_=1, to=10000, width=15, font=("Arial", 10))
+        self.stock_in_qty = ttk.Spinbox(form_frame, from_=1, to=10000, width=15)
         self.stock_in_qty.grid(row=1, column=1, sticky=tk.W, pady=5, padx=5)
         self.stock_in_qty.set(1)
         
         # Date
         ttk.Label(form_frame, text="Tanggal:").grid(row=2, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_in_date = DateEntry(form_frame, width=15, background='darkblue', 
-                                      foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                      font=("Arial", 10))
+        self.stock_in_date = DateEntry(form_frame, width=15)
         self.stock_in_date.grid(row=2, column=1, sticky=tk.W, pady=5, padx=5)
         
         # Supplier
         ttk.Label(form_frame, text="Supplier:").grid(row=3, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_in_supplier = ttk.Entry(form_frame, width=30, font=("Arial", 10))
+        self.stock_in_supplier = ttk.Entry(form_frame, width=30)
         self.stock_in_supplier.grid(row=3, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Notes
         ttk.Label(form_frame, text="Catatan:").grid(row=4, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_in_notes = ttk.Entry(form_frame, width=30, font=("Arial", 10))
+        self.stock_in_notes = ttk.Entry(form_frame, width=30)
         self.stock_in_notes.grid(row=4, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Button
-        ttk.Button(form_frame, text="💾 Simpan Stok Masuk", command=self.save_stock_in).grid(row=5, column=1, sticky=tk.E, pady=10, padx=5)
+        ttk.Button(form_frame, text="Simpan Stok Masuk", command=self.save_stock_in).grid(row=5, column=1, sticky=tk.E, pady=10, padx=5)
         
         form_frame.columnconfigure(1, weight=1)
         
         # Treeview frame
         tree_frame = ttk.LabelFrame(self.stock_in_frame, text="Riwayat Stok Masuk", padding=10)
-        tree_frame.pack(fill=tk.BOTH, expand=True)
+        tree_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
         # Treeview untuk riwayat stok masuk
-        columns = ("id", "item_name", "quantity", "date", "supplier", "notes")
+        columns = ("id", "item_name", "quantity", "date", "supplier")
         self.stock_in_tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
         
         self.stock_in_tree.heading("id", text="ID")
@@ -432,14 +387,12 @@ class InventoryApp:
         self.stock_in_tree.heading("quantity", text="Jumlah")
         self.stock_in_tree.heading("date", text="Tanggal")
         self.stock_in_tree.heading("supplier", text="Supplier")
-        self.stock_in_tree.heading("notes", text="Catatan")
         
         self.stock_in_tree.column("id", width=50, anchor=tk.CENTER)
         self.stock_in_tree.column("item_name", width=180)
         self.stock_in_tree.column("quantity", width=80, anchor=tk.CENTER)
         self.stock_in_tree.column("date", width=100, anchor=tk.CENTER)
         self.stock_in_tree.column("supplier", width=150)
-        self.stock_in_tree.column("notes", width=200)
         
         scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.stock_in_tree.yview)
         self.stock_in_tree.configure(yscroll=scrollbar.set)
@@ -456,49 +409,47 @@ class InventoryApp:
         
         # Item selection
         ttk.Label(form_frame, text="Pilih Barang:").grid(row=0, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_item = ttk.Combobox(form_frame, state="readonly", width=30, font=("Arial", 10))
+        self.stock_out_item = ttk.Combobox(form_frame, state="readonly", width=30)
         self.stock_out_item.grid(row=0, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Quantity
         ttk.Label(form_frame, text="Jumlah:").grid(row=1, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_qty = ttk.Spinbox(form_frame, from_=1, to=10000, width=15, font=("Arial", 10))
+        self.stock_out_qty = ttk.Spinbox(form_frame, from_=1, to=10000, width=15)
         self.stock_out_qty.grid(row=1, column=1, sticky=tk.W, pady=5, padx=5)
         self.stock_out_qty.set(1)
         
         # Method
         ttk.Label(form_frame, text="Metode:").grid(row=2, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_method = ttk.Combobox(form_frame, values=["FIFO", "LIFO"], state="readonly", width=15, font=("Arial", 10))
+        self.stock_out_method = ttk.Combobox(form_frame, values=["FIFO", "LIFO"], state="readonly", width=15)
         self.stock_out_method.grid(row=2, column=1, sticky=tk.W, pady=5, padx=5)
         self.stock_out_method.set("FIFO")
         
         # Date
         ttk.Label(form_frame, text="Tanggal:").grid(row=3, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_date = DateEntry(form_frame, width=15, background='darkblue', 
-                                       foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                       font=("Arial", 10))
+        self.stock_out_date = DateEntry(form_frame, width=15)
         self.stock_out_date.grid(row=3, column=1, sticky=tk.W, pady=5, padx=5)
         
         # Customer
         ttk.Label(form_frame, text="Customer:").grid(row=4, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_customer = ttk.Entry(form_frame, width=30, font=("Arial", 10))
+        self.stock_out_customer = ttk.Entry(form_frame, width=30)
         self.stock_out_customer.grid(row=4, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Notes
         ttk.Label(form_frame, text="Catatan:").grid(row=5, column=0, sticky=tk.W, pady=5, padx=5)
-        self.stock_out_notes = ttk.Entry(form_frame, width=30, font=("Arial", 10))
+        self.stock_out_notes = ttk.Entry(form_frame, width=30)
         self.stock_out_notes.grid(row=5, column=1, pady=5, padx=5, sticky=tk.EW)
         
         # Button
-        ttk.Button(form_frame, text="💾 Simpan Stok Keluar", command=self.save_stock_out).grid(row=6, column=1, sticky=tk.E, pady=10, padx=5)
+        ttk.Button(form_frame, text="Simpan Stok Keluar", command=self.save_stock_out).grid(row=6, column=1, sticky=tk.E, pady=10, padx=5)
         
         form_frame.columnconfigure(1, weight=1)
         
         # Treeview frame
         tree_frame = ttk.LabelFrame(self.stock_out_frame, text="Riwayat Stok Keluar", padding=10)
-        tree_frame.pack(fill=tk.BOTH, expand=True)
+        tree_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
         # Treeview untuk riwayat stok keluar
-        columns = ("id", "item_name", "quantity", "method", "date", "customer", "notes")
+        columns = ("id", "item_name", "quantity", "method", "date", "customer")
         self.stock_out_tree = ttk.Treeview(tree_frame, columns=columns, show="headings")
         
         self.stock_out_tree.heading("id", text="ID")
@@ -507,7 +458,6 @@ class InventoryApp:
         self.stock_out_tree.heading("method", text="Metode")
         self.stock_out_tree.heading("date", text="Tanggal")
         self.stock_out_tree.heading("customer", text="Customer")
-        self.stock_out_tree.heading("notes", text="Catatan")
         
         self.stock_out_tree.column("id", width=50, anchor=tk.CENTER)
         self.stock_out_tree.column("item_name", width=180)
@@ -515,7 +465,6 @@ class InventoryApp:
         self.stock_out_tree.column("method", width=80, anchor=tk.CENTER)
         self.stock_out_tree.column("date", width=100, anchor=tk.CENTER)
         self.stock_out_tree.column("customer", width=150)
-        self.stock_out_tree.column("notes", width=200)
         
         scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=self.stock_out_tree.yview)
         self.stock_out_tree.configure(yscroll=scrollbar.set)
@@ -532,15 +481,15 @@ class InventoryApp:
         
         # Laporan Penjualan
         sales_frame = ttk.Frame(report_notebook, padding=10)
-        report_notebook.add(sales_frame, text="📈 Laporan Penjualan")
+        report_notebook.add(sales_frame, text="Laporan Penjualan")
         
         # Laporan Stok
         stock_frame = ttk.Frame(report_notebook, padding=10)
-        report_notebook.add(stock_frame, text="📦 Laporan Stok")
+        report_notebook.add(stock_frame, text="Laporan Stok")
         
         # Laporan Kadaluarsa
         expiry_frame = ttk.Frame(report_notebook, padding=10)
-        report_notebook.add(expiry_frame, text="⚠️ Barang Kadaluarsa")
+        report_notebook.add(expiry_frame, text="Barang Kadaluarsa")
         
         self.setup_sales_report(sales_frame)
         self.setup_stock_report(stock_frame)
@@ -552,19 +501,17 @@ class InventoryApp:
         filter_frame.pack(fill=tk.X, pady=10)
         
         ttk.Label(filter_frame, text="Dari Tanggal:").grid(row=0, column=0, padx=5)
-        self.sales_start_date = DateEntry(filter_frame, width=12, background='darkblue', 
-                                         foreground='white', borderwidth=2, date_pattern='y-mm-dd')
+        self.sales_start_date = DateEntry(filter_frame, width=12)
         self.sales_start_date.grid(row=0, column=1, padx=5)
         
         ttk.Label(filter_frame, text="Sampai Tanggal:").grid(row=0, column=2, padx=5)
-        self.sales_end_date = DateEntry(filter_frame, width=12, background='darkblue', 
-                                       foreground='white', borderwidth=2, date_pattern='y-mm-dd')
+        self.sales_end_date = DateEntry(filter_frame, width=12)
         self.sales_end_date.grid(row=0, column=3, padx=5)
         
-        ttk.Button(filter_frame, text="🔄 Generate Laporan", 
+        ttk.Button(filter_frame, text="Generate Laporan", 
                   command=self.generate_sales_report).grid(row=0, column=4, padx=5)
         
-        ttk.Button(filter_frame, text="📊 Export ke CSV", 
+        ttk.Button(filter_frame, text="Export ke CSV", 
                   command=self.export_sales_report).grid(row=0, column=5, padx=5)
         
         # Treeview untuk laporan penjualan
@@ -593,10 +540,10 @@ class InventoryApp:
         button_frame = ttk.Frame(parent)
         button_frame.pack(pady=10)
         
-        ttk.Button(button_frame, text="🔄 Generate Laporan Stok", 
+        ttk.Button(button_frame, text="Generate Laporan Stok", 
                   command=self.generate_stock_report).pack(side=tk.LEFT, padx=5)
         
-        ttk.Button(button_frame, text="📊 Export ke CSV", 
+        ttk.Button(button_frame, text="Export ke CSV", 
                   command=self.export_stock_report).pack(side=tk.LEFT, padx=5)
         
         # Treeview untuk laporan stok
@@ -636,10 +583,10 @@ class InventoryApp:
         self.expiry_threshold.pack(side=tk.LEFT, padx=5)
         self.expiry_threshold.set(30)
         
-        ttk.Button(filter_frame, text="🔄 Generate Laporan Kadaluarsa", 
+        ttk.Button(filter_frame, text="Generate Laporan Kadaluarsa", 
                   command=self.generate_expiry_report).pack(side=tk.LEFT, padx=5)
         
-        ttk.Button(filter_frame, text="📊 Export ke CSV", 
+        ttk.Button(filter_frame, text="Export ke CSV", 
                   command=self.export_expiry_report).pack(side=tk.LEFT, padx=5)
         
         # Treeview untuk laporan kadaluarsa
@@ -670,7 +617,7 @@ class InventoryApp:
         self.expiry_tree.pack(fill=tk.BOTH, expand=True)
     
     def setup_dashboard_tab(self):
-        # Dashboard dengan summary dan grafik
+        # Dashboard dengan summary
         summary_frame = ttk.Frame(self.dashboard_frame)
         summary_frame.pack(fill=tk.X, pady=10)
         
@@ -680,45 +627,26 @@ class InventoryApp:
         self.low_stock_var = tk.StringVar(value="0")
         self.expired_var = tk.StringVar(value="0")
         
-        # Card 1: Total Items
-        card1 = ttk.Frame(summary_frame, style="Card.TFrame")
-        card1.grid(row=0, column=0, padx=10, sticky=tk.NSEW)
-        ttk.Label(card1, text="Total Barang", font=("Arial", 10, "bold")).pack(pady=(10, 5))
-        ttk.Label(card1, textvariable=self.total_items_var, font=("Arial", 16, "bold"), foreground="#2c3e50").pack(pady=(0, 10))
+        ttk.Label(summary_frame, text="Total Barang:", font=("Arial", 10, "bold")).grid(row=0, column=0, padx=10)
+        ttk.Label(summary_frame, textvariable=self.total_items_var, font=("Arial", 14)).grid(row=1, column=0, padx=10)
         
-        # Card 2: Total Stock
-        card2 = ttk.Frame(summary_frame, style="Card.TFrame")
-        card2.grid(row=0, column=1, padx=10, sticky=tk.NSEW)
-        ttk.Label(card2, text="Total Stok", font=("Arial", 10, "bold")).pack(pady=(10, 5))
-        ttk.Label(card2, textvariable=self.total_stock_var, font=("Arial", 16, "bold"), foreground="#2c3e50").pack(pady=(0, 10))
+        ttk.Label(summary_frame, text="Total Stok:", font=("Arial", 10, "bold")).grid(row=0, column=1, padx=10)
+        ttk.Label(summary_frame, textvariable=self.total_stock_var, font=("Arial", 14)).grid(row=1, column=1, padx=10)
         
-        # Card 3: Low Stock
-        card3 = ttk.Frame(summary_frame, style="Card.TFrame")
-        card3.grid(row=0, column=2, padx=10, sticky=tk.NSEW)
-        ttk.Label(card3, text="Stok Rendah", font=("Arial", 10, "bold")).pack(pady=(10, 5))
-        ttk.Label(card3, textvariable=self.low_stock_var, font=("Arial", 16, "bold"), foreground="#e74c3c").pack(pady=(0, 10))
+        ttk.Label(summary_frame, text="Stok Rendah:", font=("Arial", 10, "bold")).grid(row=0, column=2, padx=10)
+        ttk.Label(summary_frame, textvariable=self.low_stock_var, font=("Arial", 14)).grid(row=1, column=2, padx=10)
         
-        # Card 4: Expired
-        card4 = ttk.Frame(summary_frame, style="Card.TFrame")
-        card4.grid(row=0, column=3, padx=10, sticky=tk.NSEW)
-        ttk.Label(card4, text="Kadaluarsa", font=("Arial", 10, "bold")).pack(pady=(10, 5))
-        ttk.Label(card4, textvariable=self.expired_var, font=("Arial", 16, "bold"), foreground="#e74c3c").pack(pady=(0, 10))
+        ttk.Label(summary_frame, text="Kadaluarsa:", font=("Arial", 10, "bold")).grid(row=0, column=3, padx=10)
+        ttk.Label(summary_frame, textvariable=self.expired_var, font=("Arial", 14)).grid(row=1, column=3, padx=10)
         
-        # Refresh button
-        ttk.Button(summary_frame, text="🔄 Refresh", command=self.update_dashboard).grid(row=0, column=4, padx=10)
-        
-        summary_frame.columnconfigure(0, weight=1)
-        summary_frame.columnconfigure(1, weight=1)
-        summary_frame.columnconfigure(2, weight=1)
-        summary_frame.columnconfigure(3, weight=1)
-        summary_frame.columnconfigure(4, weight=0)
+        ttk.Button(summary_frame, text="Refresh", command=self.update_dashboard).grid(row=0, column=4, rowspan=2, padx=10)
         
         # Info frame
         info_frame = ttk.Frame(self.dashboard_frame)
         info_frame.pack(fill=tk.BOTH, expand=True, pady=10)
         
         # Low stock warning
-        low_stock_frame = ttk.LabelFrame(info_frame, text="⚠️ Peringatan Stok Rendah", padding=10)
+        low_stock_frame = ttk.LabelFrame(info_frame, text="Peringatan Stok Rendah", padding=10)
         low_stock_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
         
         columns = ("name", "category", "stock", "min_stock")
@@ -729,41 +657,10 @@ class InventoryApp:
         self.low_stock_tree.heading("stock", text="Stok")
         self.low_stock_tree.heading("min_stock", text="Stok Minimum")
         
-        self.low_stock_tree.column("name", width=200)
-        self.low_stock_tree.column("category", width=150)
-        self.low_stock_tree.column("stock", width=80, anchor=tk.CENTER)
-        self.low_stock_tree.column("min_stock", width=100, anchor=tk.CENTER)
-        
         scrollbar = ttk.Scrollbar(low_stock_frame, orient=tk.VERTICAL, command=self.low_stock_tree.yview)
         self.low_stock_tree.configure(yscroll=scrollbar.set)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.low_stock_tree.pack(fill=tk.BOTH, expand=True)
-        
-        # Expired items warning
-        expired_frame = ttk.LabelFrame(info_frame, text="⏰ Barang Kadaluarsa", padding=10)
-        expired_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        
-        columns = ("name", "category", "expiry_date", "days_until")
-        self.expired_tree = ttk.Treeview(expired_frame, columns=columns, show="headings", height=5)
-        
-        self.expired_tree.heading("name", text="Nama Barang")
-        self.expired_tree.heading("category", text="Kategori")
-        self.expired_tree.heading("expiry_date", text="Tanggal Kadaluarsa")
-        self.expired_tree.heading("days_until", text="Hari Hingga Kadaluarsa")
-        
-        self.expired_tree.column("name", width=200)
-        self.expired_tree.column("category", width=150)
-        self.expired_tree.column("expiry_date", width=120, anchor=tk.CENTER)
-        self.expired_tree.column("days_until", width=150, anchor=tk.CENTER)
-        
-        scrollbar = ttk.Scrollbar(expired_frame, orient=tk.VERTICAL, command=self.expired_tree.yview)
-        self.expired_tree.configure(yscroll=scrollbar.set)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.expired_tree.pack(fill=tk.BOTH, expand=True)
-        
-        # Configure tags
-        self.expired_tree.tag_configure("expired", background="#ffcccc")
-        self.expired_tree.tag_configure("expiring", background="#fff0cc")
         
         self.update_dashboard()
         
@@ -781,16 +678,25 @@ class InventoryApp:
                 item["created_date"], item["expiry_date"]
             ))
             
-        # Update comboboxes
-        item_names = [f"{item['id']} - {item['name']}" for item in items]
-        self.stock_in_item["values"] = item_names
-        self.stock_out_item["values"] = item_names
-        
-        if item_names:
-            self.stock_in_item.current(0)
-            self.stock_out_item.current(0)
+        # Update comboboxes jika sudah diinisialisasi
+        if hasattr(self, 'stock_in_item') and self.stock_in_item:
+            item_names = [f"{item['id']} - {item['name']}" for item in items]
+            self.stock_in_item["values"] = item_names
+            
+        if hasattr(self, 'stock_out_item') and self.stock_out_item:
+            item_names = [f"{item['id']} - {item['name']}" for item in items]
+            self.stock_out_item["values"] = item_names
+            
+        if items:
+            if hasattr(self, 'stock_in_item') and self.stock_in_item:
+                self.stock_in_item.current(0)
+            if hasattr(self, 'stock_out_item') and self.stock_out_item:
+                self.stock_out_item.current(0)
             
     def refresh_stock_in(self):
+        if not hasattr(self, 'stock_in_tree'):
+            return
+            
         for item in self.stock_in_tree.get_children():
             self.stock_in_tree.delete(item)
             
@@ -798,10 +704,13 @@ class InventoryApp:
         for trans in transactions:
             self.stock_in_tree.insert("", tk.END, values=(
                 trans["id"], trans["item_name"], trans["quantity"], 
-                trans["date"], trans.get("supplier", ""), trans.get("notes", "")
+                trans["date"], trans.get("supplier", "")
             ))
             
     def refresh_stock_out(self):
+        if not hasattr(self, 'stock_out_tree'):
+            return
+            
         for item in self.stock_out_tree.get_children():
             self.stock_out_tree.delete(item)
             
@@ -809,7 +718,7 @@ class InventoryApp:
         for trans in transactions:
             self.stock_out_tree.insert("", tk.END, values=(
                 trans["id"], trans["item_name"], trans["quantity"], 
-                trans["method"], trans["date"], trans.get("customer", ""), trans.get("notes", "")
+                trans["method"], trans["date"], trans.get("customer", "")
             ))
             
     def search_items(self, event):
@@ -831,23 +740,6 @@ class InventoryApp:
                     item["stock"], item["unit"], item.get("min_stock", 10),
                     item["created_date"], item["expiry_date"]
                 ))
-                
-    def sort_treeview(self, tree, col, reverse):
-        try:
-            data = [(tree.set(item, col), item) for item in tree.get_children('')]
-            
-            # Try to convert to numbers for proper sorting
-            try:
-                data.sort(key=lambda x: float(x[0]), reverse=reverse)
-            except ValueError:
-                data.sort(reverse=reverse)
-                
-            for index, (val, item) in enumerate(data):
-                tree.move(item, '', index)
-                
-            tree.heading(col, command=lambda: self.sort_treeview(tree, col, not reverse))
-        except Exception as e:
-            print(f"Error sorting: {e}")
             
     def on_item_double_click(self, event):
         self.open_edit_item()
@@ -881,6 +773,9 @@ class InventoryApp:
                 messagebox.showerror("Error", "Gagal menghapus barang")
                 
     def save_stock_in(self):
+        if not hasattr(self, 'stock_in_item') or not self.stock_in_item:
+            return
+            
         selection = self.stock_in_item.get()
         if not selection:
             messagebox.showerror("Error", "Pilih barang terlebih dahulu")
@@ -889,7 +784,7 @@ class InventoryApp:
         try:
             item_id = int(selection.split(" - ")[0])
             quantity = int(self.stock_in_qty.get())
-            date = self.stock_in_date.get_date().strftime("%Y-%m-%d")
+            date = self.stock_in_date.get()
             supplier = self.stock_in_supplier.get().strip()
             notes = self.stock_in_notes.get().strip()
         except ValueError:
@@ -898,6 +793,10 @@ class InventoryApp:
             
         if quantity <= 0:
             messagebox.showerror("Error", "Jumlah harus lebih dari 0")
+            return
+            
+        if not validate_date(date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
             return
             
         if self.inventory.stock_in(item_id, quantity, date, supplier, notes):
@@ -912,6 +811,9 @@ class InventoryApp:
             messagebox.showerror("Error", "Gagal menyimpan stok masuk")
             
     def save_stock_out(self):
+        if not hasattr(self, 'stock_out_item') or not self.stock_out_item:
+            return
+            
         selection = self.stock_out_item.get()
         if not selection:
             messagebox.showerror("Error", "Pilih barang terlebih dahulu")
@@ -921,7 +823,7 @@ class InventoryApp:
             item_id = int(selection.split(" - ")[0])
             quantity = int(self.stock_out_qty.get())
             method = self.stock_out_method.get()
-            date = self.stock_out_date.get_date().strftime("%Y-%m-%d")
+            date = self.stock_out_date.get()
             customer = self.stock_out_customer.get().strip()
             notes = self.stock_out_notes.get().strip()
         except ValueError:
@@ -930,6 +832,10 @@ class InventoryApp:
             
         if quantity <= 0:
             messagebox.showerror("Error", "Jumlah harus lebih dari 0")
+            return
+            
+        if not validate_date(date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
             return
             
         success, message = self.inventory.stock_out(item_id, quantity, method, date, customer, notes)
@@ -945,9 +851,16 @@ class InventoryApp:
             messagebox.showerror("Error", message)
             
     def generate_sales_report(self):
-        start_date = self.sales_start_date.get_date().strftime("%Y-%m-%d")
-        end_date = self.sales_end_date.get_date().strftime("%Y-%m-%d")
+        if not hasattr(self, 'sales_start_date') or not hasattr(self, 'sales_end_date'):
+            return
+            
+        start_date = self.sales_start_date.get()
+        end_date = self.sales_end_date.get()
         
+        if not validate_date(start_date) or not validate_date(end_date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+            return
+            
         if start_date > end_date:
             messagebox.showerror("Error", "Tanggal mulai tidak boleh lebih besar dari tanggal akhir")
             return
@@ -1042,25 +955,15 @@ class InventoryApp:
             self.low_stock_tree.insert("", tk.END, values=(
                 item["name"], item["category"], item["stock"], item.get("min_stock", 10)
             ))
-        
-        # Update expired items
-        for item in self.expired_tree.get_children():
-            self.expired_tree.delete(item)
-            
-        for item in expiry_report["expired"]:
-            self.expired_tree.insert("", tk.END, values=(
-                item["name"], item["category"], item["expiry_date"], item["days_until_expiry"]
-            ), tags=("expired",))
-            
-        for item in expiry_report["expiring_soon"]:
-            self.expired_tree.insert("", tk.END, values=(
-                item["name"], item["category"], item["expiry_date"], item["days_until_expiry"]
-            ), tags=("expiring",))
     
     def export_sales_report(self):
-        start_date = self.sales_start_date.get_date().strftime("%Y-%m-%d")
-        end_date = self.sales_end_date.get_date().strftime("%Y-%m-%d")
+        start_date = self.sales_start_date.get()
+        end_date = self.sales_end_date.get()
         
+        if not validate_date(start_date) or not validate_date(end_date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
+            return
+            
         if start_date > end_date:
             messagebox.showerror("Error", "Tanggal mulai tidak boleh lebih besar dari tanggal akhir")
             return
@@ -1181,7 +1084,6 @@ class AddItemWindow(tk.Toplevel):
         # Center window
         self.transient(parent)
         self.grab_set()
-        self.eval(f'tk::PlaceWindow {str(self)} center')
         
         self.inventory = inventory
         self.callback = callback
@@ -1189,10 +1091,10 @@ class AddItemWindow(tk.Toplevel):
         self.setup_ui()
         
     def setup_ui(self):
-        main_frame = ttk.Frame(self, padding=20, style="Main.TFrame")
+        main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        form_frame = ttk.Frame(main_frame, style="Form.TFrame")
+        form_frame = ttk.Frame(main_frame)
         form_frame.pack(fill=tk.X, pady=10)
         
         ttk.Label(form_frame, text="Nama Barang:", font=("Arial", 10)).grid(row=0, column=0, sticky=tk.W, pady=8, padx=5)
@@ -1218,30 +1120,18 @@ class AddItemWindow(tk.Toplevel):
         self.min_stock_entry.set(10)
         
         ttk.Label(form_frame, text="Tanggal Dibuat:", font=("Arial", 10)).grid(row=5, column=0, sticky=tk.W, pady=8, padx=5)
-        self.created_date_entry = DateEntry(form_frame, width=15, background='darkblue', 
-                                          foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                          font=("Arial", 10))
+        self.created_date_entry = DateEntry(form_frame, width=15)
         self.created_date_entry.grid(row=5, column=1, sticky=tk.W, pady=8, padx=5)
         
         ttk.Label(form_frame, text="Tanggal Kadaluarsa:", font=("Arial", 10)).grid(row=6, column=0, sticky=tk.W, pady=8, padx=5)
-        self.expiry_date_entry = DateEntry(form_frame, width=15, background='darkblue', 
-                                         foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                         font=("Arial", 10))
+        self.expiry_date_entry = DateEntry(form_frame, width=15)
         self.expiry_date_entry.grid(row=6, column=1, sticky=tk.W, pady=8, padx=5)
         
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(pady=20)
         
-        ttk.Button(button_frame, text="💾 Simpan", command=self.save_item, width=12).pack(side=tk.LEFT, padx=10)
-        ttk.Button(button_frame, text="❌ Batal", command=self.destroy, width=12).pack(side=tk.LEFT, padx=10)
-        
-        # Configure styles
-        self.configure_styles()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Main.TFrame", background="#f0f0f0")
-        style.configure("Form.TFrame", background="#f0f0f0")
+        ttk.Button(button_frame, text="Simpan", command=self.save_item, width=12).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Batal", command=self.destroy, width=12).pack(side=tk.LEFT, padx=10)
         
     def save_item(self):
         name = self.name_entry.get().strip()
@@ -1255,17 +1145,22 @@ class AddItemWindow(tk.Toplevel):
             return
             
         unit = self.unit_entry.get().strip()
-        created_date = self.created_date_entry.get_date().strftime("%Y-%m-%d")
-        expiry_date = self.expiry_date_entry.get_date().strftime("%Y-%m-%d")
+        created_date = self.created_date_entry.get()
+        expiry_date = self.expiry_date_entry.get()
         
         if not name or not category or not unit:
             messagebox.showerror("Error", "Nama, kategori, dan satuan harus diisi")
+            return
+            
+        if not validate_date(created_date) or not validate_date(expiry_date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
             return
             
         if created_date > expiry_date:
             messagebox.showerror("Error", "Tanggal kadaluarsa tidak boleh sebelum tanggal dibuat")
             return
             
+        # Panggil method add_item dengan parameter yang benar
         if self.inventory.add_item(name, category, stock, unit, created_date, expiry_date, min_stock):
             messagebox.showinfo("Success", "Barang berhasil ditambahkan")
             self.callback()
@@ -1285,7 +1180,6 @@ class EditItemWindow(tk.Toplevel):
         # Center window
         self.transient(parent)
         self.grab_set()
-        self.eval(f'tk::PlaceWindow {str(self)} center')
         
         self.inventory = inventory
         self.item_id = item_id
@@ -1295,10 +1189,10 @@ class EditItemWindow(tk.Toplevel):
         self.load_item_data()
         
     def setup_ui(self):
-        main_frame = ttk.Frame(self, padding=20, style="Main.TFrame")
+        main_frame = ttk.Frame(self, padding=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        form_frame = ttk.Frame(main_frame, style="Form.TFrame")
+        form_frame = ttk.Frame(main_frame)
         form_frame.pack(fill=tk.X, pady=10)
         
         ttk.Label(form_frame, text="Nama Barang:", font=("Arial", 10)).grid(row=0, column=0, sticky=tk.W, pady=8, padx=5)
@@ -1322,30 +1216,18 @@ class EditItemWindow(tk.Toplevel):
         self.min_stock_entry.grid(row=4, column=1, sticky=tk.W, pady=8, padx=5)
         
         ttk.Label(form_frame, text="Tanggal Dibuat:", font=("Arial", 10)).grid(row=5, column=0, sticky=tk.W, pady=8, padx=5)
-        self.created_date_entry = DateEntry(form_frame, width=15, background='darkblue', 
-                                          foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                          font=("Arial", 10))
+        self.created_date_entry = DateEntry(form_frame, width=15)
         self.created_date_entry.grid(row=5, column=1, sticky=tk.W, pady=8, padx=5)
         
         ttk.Label(form_frame, text="Tanggal Kadaluarsa:", font=("Arial", 10)).grid(row=6, column=0, sticky=tk.W, pady=8, padx=5)
-        self.expiry_date_entry = DateEntry(form_frame, width=15, background='darkblue', 
-                                         foreground='white', borderwidth=2, date_pattern='y-mm-dd',
-                                         font=("Arial", 10))
+        self.expiry_date_entry = DateEntry(form_frame, width=15)
         self.expiry_date_entry.grid(row=6, column=1, sticky=tk.W, pady=8, padx=5)
         
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(pady=20)
         
-        ttk.Button(button_frame, text="💾 Simpan", command=self.save_item, width=12).pack(side=tk.LEFT, padx=10)
-        ttk.Button(button_frame, text="❌ Batal", command=self.destroy, width=12).pack(side=tk.LEFT, padx=10)
-        
-        # Configure styles
-        self.configure_styles()
-        
-    def configure_styles(self):
-        style = ttk.Style()
-        style.configure("Main.TFrame", background="#f0f0f0")
-        style.configure("Form.TFrame", background="#f0f0f0")
+        ttk.Button(button_frame, text="Simpan", command=self.save_item, width=12).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Batal", command=self.destroy, width=12).pack(side=tk.LEFT, padx=10)
         
     def load_item_data(self):
         item = self.inventory.get_item(self.item_id)
@@ -1359,17 +1241,11 @@ class EditItemWindow(tk.Toplevel):
             self.min_stock_entry.insert(0, str(item.get("min_stock", 10)))
             
             # Set dates
-            try:
-                created_date = datetime.strptime(item["created_date"], "%Y-%m-%d")
-                self.created_date_entry.set_date(created_date)
-            except:
-                pass
-                
-            try:
-                expiry_date = datetime.strptime(item["expiry_date"], "%Y-%m-%d")
-                self.expiry_date_entry.set_date(expiry_date)
-            except:
-                pass
+            self.created_date_entry.delete(0, tk.END)
+            self.created_date_entry.insert(0, item["created_date"])
+            
+            self.expiry_date_entry.delete(0, tk.END)
+            self.expiry_date_entry.insert(0, item["expiry_date"])
             
     def save_item(self):
         name = self.name_entry.get().strip()
@@ -1383,11 +1259,15 @@ class EditItemWindow(tk.Toplevel):
             return
             
         unit = self.unit_entry.get().strip()
-        created_date = self.created_date_entry.get_date().strftime("%Y-%m-%d")
-        expiry_date = self.expiry_date_entry.get_date().strftime("%Y-%m-%d")
+        created_date = self.created_date_entry.get()
+        expiry_date = self.expiry_date_entry.get()
         
         if not name or not category or not unit:
             messagebox.showerror("Error", "Nama, kategori, dan satuan harus diisi")
+            return
+            
+        if not validate_date(created_date) or not validate_date(expiry_date):
+            messagebox.showerror("Error", "Format tanggal tidak valid. Gunakan format YYYY-MM-DD")
             return
             
         if created_date > expiry_date:

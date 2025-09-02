@@ -45,24 +45,23 @@ class InventorySystem:
                 return item
         return None
         
-    def add_item(self, name, category, stock, unit, created_date, expiry_date):
-        items = self.load_data(self.items_file)
-        
-        new_item = {
-            "id": self.get_next_id(items),
-            "name": name,
-            "category": category,
-            "stock": stock,
-            "unit": unit,
-            "created_date": created_date,
-            "expiry_date": expiry_date,
-            "min_stock": 10  # Default minimum stock level
-        }
-        
-        items.append(new_item)
-        self.save_data(self.items_file, items)
-        return True
-        
+def add_item(self, name, category, stock, unit, created_date, expiry_date, min_stock=10):
+    items = self.load_data(self.items_file)
+    
+    new_item = {
+        "id": self.get_next_id(items),
+        "name": name,
+        "category": category,
+        "stock": stock,
+        "unit": unit,
+        "created_date": created_date,
+        "expiry_date": expiry_date,
+        "min_stock": min_stock  # Default minimum stock level
+    }
+    
+    items.append(new_item)
+    self.save_data(self.items_file, items)
+    return True
     def update_item(self, item_id, name, category, stock, unit, created_date, expiry_date, min_stock=10):
         items = self.load_data(self.items_file)
         

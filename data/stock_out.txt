@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "item_id": 1,
+    "item_name": "Susu Ultra Milk",
+    "quantity": 10,
+    "method": "FIFO",
+    "date": "2024-03-20",
+    "customer": "Toko Sumber Rejeki",
+    "notes": "Penjualan reguler"
+  },
+  {
+    "id": 2,
+    "item_id": 2,
+    "item_name": "Beras Ramos",
+    "quantity": 5,
+    "method": "FIFO",
+    "date": "2024-03-21",
+    "customer": "Toko Berkah",
+    "notes": "Penjualan grosir"
+  }
+]

@@ -14,8 +14,8 @@ def send_email_notification(to_email, subject, message):
     # Catatan: Ini adalah contoh, Anda perlu mengonfigurasi dengan pengaturan email Anda sendiri
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    smtp_username = "stevanusstudent@gmail.com"  # Ganti dengan email Anda
-    smtp_password = "bzhd yijo kccq nmve" 
+    smtp_username = "your_email@gmail.com"  # Ganti dengan email Anda
+    smtp_password = "your_app_password"     # Ganti dengan password aplikasi
     
     try:
         # Buat message
@@ -47,7 +47,8 @@ def export_to_csv(data, filename, fieldnames):
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
-            writer.writerows(data)
+            for row in data:
+                writer.writerow(row)
         return True
     except Exception as e:
         print(f"Error exporting to CSV: {e}")
@@ -68,3 +69,39 @@ def get_current_date():
 def format_currency(amount):
     """Format number as currency"""
     return "Rp {:,.2f}".format(amount).replace(",", "X").replace(".", ",").replace("X", ".")
+
+    def add_item(self, name, category, stock, unit, created_date, expiry_date, min_stock=10):
+        items = self.load_data(self.items_file)
+    
+    new_item = {
+        "id": self.get_next_id(items),
+        "name": name,
+        "category": category,
+        "stock": stock,
+        "unit": unit,
+        "created_date": created_date,
+        "expiry_date": expiry_date,
+        "min_stock": min_stock
+    }
+    
+    items.append(new_item)
+    self.save_data(self.items_file, items)
+    return True
+
+def update_item(self, item_id, name, category, stock, unit, created_date, expiry_date, min_stock=10):
+    items = self.load_data(self.items_file)
+    
+    for item in items:
+        if item["id"] == item_id:
+            item["name"] = name
+            item["category"] = category
+            item["stock"] = stock
+            item["unit"] = unit
+            item["created_date"] = created_date
+            item["expiry_date"] = expiry_date
+            item["min_stock"] = min_stock
+            
+            self.save_data(self.items_file, items)
+            return True
+            
+    return False
