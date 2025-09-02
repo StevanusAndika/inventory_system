@@ -1,7 +1,7 @@
 # Sistem Informasi Pencatatan Barang
 ![Login](index.PNG)
 ![Register](register.PNG)
-![resetpassword] (reset password.PNG)
+![resetpassword] ([reset password.PNG](https://github.com/StevanusAndika/inventory_system/blob/main/reset%20password.PNG))
 ![notifemail] (notif email.PNG)
 ![tambahbarang](TAMBAH BARANG.PNG)
 ![stockmasuk] (STOK MASUK.PNG)
