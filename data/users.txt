@@ -1,0 +1,12 @@
+[
+    {
+        "username": "12345678",
+        "password": "460a71036b1df4483bb00d9c242e2e0caac868d921b4cc5b9a0d012db1bb3b46",
+        "email": "stevanusstudent@gmail.com"
+    },
+    {
+        "username": "wibu bersukaria",
+        "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+        "email": "wibufjfi@mail.com"
+    }
+]
